@@ -28,16 +28,15 @@ class App {
 		this.character = new Character({scene: this.scene});
 		this.character.load('./assets/Xbot.glb').then((character)=>{
 			this.model = character.model; 
-			this.character.do('walk');
-
 			this.cameraControler = new CameraControler({
 				model: this.model,
 				camera: this.camera,
 				dom: this.renderer.domElement,
-				cameraOffset: new THREE.Vector3(3, 2, 2),
+				cameraOffset: new THREE.Vector3(0, 3, -3),
 				cameraTargetOffse: new THREE.Vector3(0,1,0)
 			});
 
+			this.character.do('walk');
 			let i = 0;
 			setInterval(()=>{
 				this.character.do(['walk', 'run', 'idle'][i%3]);
