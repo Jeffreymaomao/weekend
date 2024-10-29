@@ -23,7 +23,7 @@ class App {
 		this.container.appendChild(this.renderer.domElement);
 		this.cameraOffset = new THREE.Vector3(3, 2, 2);
 		this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100);
-		this.scene.add(new THREE.CameraHelper(this.camera));
+		// this.scene.add(new THREE.CameraHelper(this.camera));
 		// ---
 		this.character = new Character({scene: this.scene});
 		this.character.load('./assets/Xbot.glb').then((character)=>{
@@ -36,12 +36,7 @@ class App {
 				cameraTargetOffse: new THREE.Vector3(0,1,0)
 			});
 
-			this.character.do('walk');
-			let i = 0;
-			setInterval(()=>{
-				this.character.do(['walk', 'run', 'idle'][i%3]);
-				i++;
-			}, 2000);
+			this.character.do('idle');
 
 			this.lights[0].target = this.model;
 			this.lights[1].target = this.model;
