@@ -51,10 +51,11 @@ export class CameraControler {
 	}
 
 	update() {
+		const rotatedCameraOffset = this.cameraOffset.clone().applyQuaternion(this.model.quaternion)
 		if(this.userIsInteracting) {
 			// this.cameraOffset.lerp(this.camera.position.clone().sub(this.model.position), 0.1);
 		} else {
-			this.camera.position.lerp(this.model.position.clone().add(this.cameraOffset), 0.03);
+			this.camera.position.lerp(this.model.position.clone().add(rotatedCameraOffset), 0.03);
 		}
 		// ---
 		this.cameraTarget = this.model.position.clone().add(this.cameraTargetOffset);
