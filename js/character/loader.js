@@ -17,7 +17,55 @@ export class Character {
 		this.mixer = null; // loading after user call `load()`
 		this.speed = 0;
 		this.targetSpeed = 0;
-		// this.direction = THREE.Vector3(0, 0, 0);
+
+		this.rotationSpeed = 2.0;
+		this.direction = new THREE.Vector3(0, 0, 1);
+		this.targetDirection = new THREE.Vector3(0, 0, 1);
+
+		this.keysPressed = {};
+		window.addEventListener('keydown', (event) => this.onKeyDown(event));
+		window.addEventListener('keyup', (event) => this.onKeyUp(event));
+	}
+
+	onKeyDown(event) {
+		const key = event.key.toLowerCase();
+		const shiftKey = event.shiftKey;
+		this.keysPressed[key] = true;
+		// ---
+		if (this.keysPressed['w']) {
+			if (shiftKey) {
+				if (this.currentActionName !== 'run') this.do('run');
+			} else {
+				if (this.currentActionName !== 'walk') this.do('walk');
+			}
+			this.targetDirection.z = 1;
+		} else if (this.keysPressed['s']) {
+			if (this.currentActionName !== 'walk') {
+				this.do('walk'); // maybe there is a backword walk?
+			}
+			this.targetDirection.z = -1;
+		}
+		// ---
+		if (this.keysPressed['a']) {
+			// maybe there is turn action?
+			this.targetDirection.y = 1;
+		} else if (this.keysPressed['d']) {
+			// maybe there is turn action?
+			this.targetDirection.y = -1;
+		}
+	}
+
+	onKeyUp(event) {
+		const key = event.key.toLowerCase();
+		this.keysPressed[key] = false;
+		if (key === 'w' || key === 's') {
+			this.targetDirection.z = 0;
+			if (!this.keysPressed['w'] && !this.keysPressed['s']) {
+				this.do('idle');
+			}
+		} else if (key === 'a' || key === 'd') {
+			this.targetDirection.y = 0;
+		}
 	}
 
 	updatePositionEuler(obj, v={x:0, y:0, z:0}, dt) {
@@ -35,13 +83,29 @@ export class Character {
 		this.targetSpeed = nextActionState.speed || 0;
 	}
 
+	getForwardVector() {
+		const forward = new THREE.Vector3(0, 0, 1);
+		forward.applyQuaternion(this.model.quaternion);
+		return forward;
+	}
+
 	update(deltaTime=0.0) {
 		this.mixer.update(deltaTime);
-
+		// -- speed lerp
 		const transitionRate = 40.0 * Math.exp(-this.targetSpeed);
 		this.speed += (this.targetSpeed - this.speed) * transitionRate * deltaTime;
-		
-		this.updatePositionEuler(this.model, {x:0, y:0, z: this.speed*this.mixer.timeScale}, deltaTime);
+		// -- direction lerp
+		const moveDistance = this.speed * this.mixer.timeScale * deltaTime;
+		const rotationAngle = this.rotationSpeed * this.mixer.timeScale * deltaTime;
+		this.direction.lerp(this.targetDirection, 0.1);
+
+		if (this.direction.z !== 0) {
+			this.model.position.add(this.getForwardVector().multiplyScalar(this.direction.z * moveDistance));
+		}
+
+		if (this.direction.y !== 0) {
+			this.model.rotateY(this.direction.y * rotationAngle);
+		}
 	}
 
 	load(modelURL) {
